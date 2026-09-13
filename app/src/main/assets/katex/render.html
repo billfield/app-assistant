@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="katex.min.css" />
+    <script src="katex.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 12px;
+            margin: 0;
+            color: #1c1b1f;
+            background: transparent;
+            word-wrap: break-word;
+        }
+        .katex { font-size: 1.05em; }
+        .katex-display { margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; }
+        .katex-display > .katex { white-space: normal; }
+        pre, code {
+            font-family: "JetBrains Mono", Consolas, monospace;
+            background: #f3f4f6;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        p { margin: 0.4em 0; }
+    </style>
+</head>
+<body>
+    <div id="content"></div>
+    <script>
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderSegment(text) {
+            const el = document.getElementById('content');
+            el.innerHTML = '';
+            if (!text) return;
+
+            // 先把 \begin{}...\end{} 块替换为 $$...$$ 形式（KaTeX 需要显式定界符）
+            // 然后按 $$...$$ / $...$ 切分渲染
+            const html = [];
+            let rest = text;
+            // 处理 display 块 $$...$$
+            const displayRe = /\$\$([\s\S]+?)\$\$/g;
+            const inlineRe = /\$([^$\n]+?)\$/g;
+
+            let lastIndex = 0;
+            const tokens = [];
+            const combined = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
+            let m;
+            while ((m = combined.exec(text)) !== null) {
+                if (m.index > lastIndex) {
+                    tokens.push({type: 'text', value: text.substring(lastIndex, m.index)});
+                }
+                if (m[1] !== undefined) {
+                    tokens.push({type: 'display', value: m[1]});
+                } else {
+                    tokens.push({type: 'inline', value: m[2]});
+                }
+                lastIndex = combined.lastIndex;
+            }
+            if (lastIndex < text.length) {
+                tokens.push({type: 'text', value: text.substring(lastIndex)});
+            }
+
+            for (const tok of tokens) {
+                if (tok.type === 'text') {
+                    const p = document.createElement('span');
+                    p.innerHTML = escapeHtml(tok.value).replace(/\n/g, '<br/>');
+                    el.appendChild(p);
+                } else {
+                    const span = document.createElement(tok.type === 'display' ? 'div' : 'span');
+                    try {
+                        katex.render(tok.value, span, {
+                            displayMode: tok.type === 'display',
+                            throwOnError: false,
+                            output: 'html',
+                            strict: false,
+                            trust: true
+                        });
+                    } catch (e) {
+                        span.textContent = tok.value;
+                        span.style.fontFamily = 'monospace';
+                    }
+                    el.appendChild(span);
+                }
+            }
+            // 通知 Android 渲染完成（用于高度自适应）
+            if (window.AndroidBridge && window.AndroidBridge.onRendered) {
+                window.AndroidBridge.onRendered(document.body.scrollHeight);
+            }
+        }
+
+        // Android 调用入口
+        window.renderContent = function(escapedJson) {
+            try {
+                const text = JSON.parse(escapedJson);
+                renderSegment(text);
+            } catch (e) {
+                document.getElementById('content').textContent = '渲染失败: ' + e.message;
+            }
+        };
+    </script>
+</body>
+</html>

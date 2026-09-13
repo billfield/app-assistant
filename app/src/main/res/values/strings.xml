@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MathCoach</string>
+    <string name="tab_solve">解题</string>
+    <string name="tab_history">历史</string>
+    <string name="tab_analytics">掌握度</string>
+    <string name="tab_practice">练习</string>
+    <string name="tab_settings">设置</string>
+</resources>

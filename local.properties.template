@@ -1,0 +1,9 @@
+# Android SDK 路径配置
+# 复制本文件为 local.properties，并修改为你的实际 SDK 路径
+# Windows 路径需要用双反斜杠转义
+
+# 默认路径（如果你按 build.md 的指引装到 D:\Android\Sdk）
+sdk.dir=D:\\Android\\Sdk
+
+# 如果装到其他位置，例如：
+# sdk.dir=C:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
