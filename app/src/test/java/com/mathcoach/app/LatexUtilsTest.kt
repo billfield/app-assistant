@@ -15,7 +15,7 @@ class LatexUtilsTest {
     @Test
     fun `unescape 处理 triangle 中的 tab`() {
         // \t 会被 JSON 解析为 tab，需要还原为 \triangle
-        val input = "在\riangle ABC 中"
+        val input = "在\triangle ABC 中"
         val result = LatexUtils.unescape(input)
         assertTrue(result.contains("\\triangle"))
     }

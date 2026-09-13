@@ -68,4 +68,28 @@ class JsonTolerantParserTest {
     fun `完全非 JSON 文本返回 null`() {
         assertNull(JsonTolerantParser.parse("这是一段普通中文，没有 JSON"))
     }
+
+    @Test
+    fun `修复 LaTeX 单反斜杠非法转义`() {
+        // 模型把 \\{ 写成了 \{，标准 JSON 解析会失败
+        val text = """{"题目": "解集为 $\{x|-1<x<2\}$，用 \text{或} 连接"}"""
+        val result = JsonTolerantParser.parseAsObject(text)
+        assertNotNull(result)
+    }
+
+    @Test
+    fun `截断的对象可恢复已完整字段`() {
+        // 长回复被 max_tokens 截断，少了结尾引号和花括号
+        val text = """```json
+{"题目": "关于 x 的不等式", "题型": "选择", "详细解析": "首先判断"""
+        val result = JsonTolerantParser.parseAsObject(text)
+        assertNotNull(result)
+    }
+
+    @Test
+    fun `截断且带嵌套数组的对象可恢复`() {
+        val text = """{"题目": "1+1=?", "知识点": ["加法", "减法", "进"""
+        val result = JsonTolerantParser.parseAsObject(text)
+        assertNotNull(result)
+    }
 }

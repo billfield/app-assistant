@@ -37,7 +37,8 @@ data class ChatRequest(
     val model: String,
     val messages: List<ChatMessage>,
     val temperature: Double = 1.0,
-    val stream: Boolean = true
+    val stream: Boolean = true,
+    @Json(name = "max_tokens") val maxTokens: Int = 8192
 )
 
 @JsonClass(generateAdapter = true)
